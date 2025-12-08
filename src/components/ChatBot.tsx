@@ -1,19 +1,19 @@
 /**
  * ChatBot Component
  * 
- * AI-powered calendar assistant with streaming responses.
+ * AI-powered calendar assistant with event creation capabilities.
  * Uses Lovable AI for real-time conversational interactions.
  */
 
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { useApp } from '../App';
-import { ChatMessage } from '../types';
-import { streamChat } from '../services/chatService';
+import { ChatMessage, CalendarEvent } from '../types';
+import { sendChatMessage } from '../services/chatService';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { X, Send, Bot, User, Loader2, Sparkles } from 'lucide-react';
+import { X, Send, Bot, User, Loader2, Sparkles, Calendar, CheckCircle2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { toast } from 'sonner';
 
@@ -23,10 +23,9 @@ interface ChatBotProps {
 }
 
 const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose }) => {
-  const { events, currentDate, view, chatMessages, setChatMessages } = useApp();
+  const { events, currentDate, view, chatMessages, setChatMessages, setEvents } = useApp();
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [streamingContent, setStreamingContent] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -35,7 +34,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose }) => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [chatMessages, streamingContent]);
+  }, [chatMessages]);
 
   // Focus input when opened
   useEffect(() => {
@@ -57,6 +56,27 @@ const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose }) => {
     return null;
   }, [isOpen, chatMessages.length]);
 
+  // Transform backend event to CalendarEvent format
+  const transformEvent = useCallback((backendEvent: any): CalendarEvent => {
+    const now = new Date().toISOString();
+    return {
+      id: backendEvent.event_id || backendEvent.id,
+      title: backendEvent.title,
+      start: backendEvent.start_time,
+      end: backendEvent.end_time,
+      calendarId: backendEvent.calendar_id || 'default',
+      type: backendEvent.event_type || 'event',
+      description: backendEvent.description || '',
+      location: backendEvent.location || '',
+      allDay: backendEvent.all_day || false,
+      recurrence: backendEvent.recurrence || 'none',
+      notifications: backendEvent.notifications || [],
+      isDeleted: false,
+      createdAt: backendEvent.created_at || now,
+      updatedAt: backendEvent.updated_at || now,
+    };
+  }, []);
+
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
 
@@ -67,48 +87,46 @@ const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose }) => {
       timestamp: new Date().toISOString(),
     };
 
-    const userInput = input.trim();
     setChatMessages(prev => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
-    setStreamingContent('');
 
     // Build message history for context (last 10 messages)
     const messageHistory = [...chatMessages, userMessage]
       .slice(-10)
       .map(m => ({ role: m.role as 'user' | 'assistant', content: m.content }));
 
-    let assistantContent = '';
-
     try {
-      await streamChat({
+      const result = await sendChatMessage({
         messages: messageHistory,
         context: { events, currentDate, view },
-        onDelta: (chunk) => {
-          assistantContent += chunk;
-          setStreamingContent(assistantContent);
-        },
-        onDone: () => {
-          // Add the complete assistant message
-          if (assistantContent.trim()) {
-            const assistantMessage: ChatMessage = {
-              id: crypto.randomUUID(),
-              role: 'assistant',
-              content: assistantContent,
-              timestamp: new Date().toISOString(),
-            };
-            setChatMessages(prev => [...prev, assistantMessage]);
-          }
-          setStreamingContent('');
-          setIsLoading(false);
-        },
-        onError: (error) => {
-          console.error('Chat error:', error);
-          toast.error(error.message || 'Error al enviar mensaje');
-          setStreamingContent('');
-          setIsLoading(false);
-        },
       });
+
+      // Add new events to the calendar if any were created
+      if (result.created_events && result.created_events.length > 0) {
+        const newEvents = result.created_events.map(transformEvent);
+        setEvents(prev => [...prev, ...newEvents]);
+        
+        // Show success toast
+        const eventCount = newEvents.length;
+        toast.success(
+          eventCount === 1 
+            ? `📅 Evento "${newEvents[0].title}" creado` 
+            : `📅 ${eventCount} eventos creados`,
+          { duration: 3000 }
+        );
+      }
+
+      // Add the assistant message
+      if (result.content) {
+        const assistantMessage: ChatMessage = {
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content: result.content,
+          timestamp: new Date().toISOString(),
+        };
+        setChatMessages(prev => [...prev, assistantMessage]);
+      }
     } catch (error) {
       console.error('Chat error:', error);
       const errorMessage: ChatMessage = {
@@ -118,7 +136,8 @@ const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose }) => {
         timestamp: new Date().toISOString(),
       };
       setChatMessages(prev => [...prev, errorMessage]);
-      setStreamingContent('');
+      toast.error(error instanceof Error ? error.message : 'Error al enviar mensaje');
+    } finally {
       setIsLoading(false);
     }
   };
@@ -151,7 +170,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose }) => {
           </div>
           <div>
             <h3 className="font-medium text-sm">Asistente IA</h3>
-            <p className="text-xs text-muted-foreground">Powered by Lovable AI</p>
+            <p className="text-xs text-muted-foreground">Puede crear y consultar eventos</p>
           </div>
         </div>
         <Button variant="ghost" size="icon" onClick={onClose} aria-label="Cerrar chat">
@@ -206,37 +225,16 @@ const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose }) => {
               )}
             </div>
           ))}
-          
-          {/* Streaming message */}
-          {streamingContent && (
-            <div className="flex gap-2 items-start">
-              <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                <Bot className="w-3.5 h-3.5 text-primary" />
-              </div>
-              <div className="max-w-[80%] bg-secondary rounded-2xl rounded-bl-sm px-3 py-2">
-                <ReactMarkdown
-                  className="prose prose-sm dark:prose-invert max-w-none text-sm [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
-                  components={{
-                    p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
-                    ul: ({ children }) => <ul className="list-disc pl-4 mb-2">{children}</ul>,
-                    li: ({ children }) => <li className="mb-0.5">{children}</li>,
-                    strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
-                  }}
-                >
-                  {streamingContent}
-                </ReactMarkdown>
-              </div>
-            </div>
-          )}
 
-          {/* Loading indicator (only when waiting for first chunk) */}
-          {isLoading && !streamingContent && (
+          {/* Loading indicator */}
+          {isLoading && (
             <div className="flex gap-2 items-start">
               <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                 <Bot className="w-3.5 h-3.5 text-primary" />
               </div>
-              <div className="bg-secondary rounded-2xl rounded-bl-sm px-3 py-2">
+              <div className="bg-secondary rounded-2xl rounded-bl-sm px-3 py-2 flex items-center gap-2">
                 <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                <span className="text-xs text-muted-foreground">Procesando...</span>
               </div>
             </div>
           )}
@@ -251,7 +249,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose }) => {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Escribe un mensaje..."
+            placeholder="Ej: Crea una reunión mañana a las 10am"
             disabled={isLoading}
             className="flex-1"
             aria-label="Mensaje para el asistente"
