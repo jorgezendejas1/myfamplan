@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useApp } from '../App';
 import { Settings } from '../types';
 import {
@@ -8,6 +8,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
   Select,
@@ -16,10 +17,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { downloadICS, importFromICS } from '../utils/icsUtils';
-import { Download, Upload, Moon, Sun, Monitor } from 'lucide-react';
+import { Download, Upload, Moon, Sun, Monitor, Mail, Bell } from 'lucide-react';
+import { toast } from 'sonner';
+import { requestNotificationPermission } from '../services/notificationService';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -28,9 +30,28 @@ interface SettingsModalProps {
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   const { settings, setSettings, events, setEvents, calendars } = useApp();
+  const [emailInput, setEmailInput] = useState(settings.notificationEmail || '');
 
   const handleThemeChange = (theme: Settings['theme']) => {
     setSettings(prev => ({ ...prev, theme }));
+  };
+
+  const handleEmailSave = () => {
+    if (emailInput && !emailInput.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+      toast.error('Ingresa un correo electrónico válido');
+      return;
+    }
+    setSettings(prev => ({ ...prev, notificationEmail: emailInput || undefined }));
+    toast.success('Correo de notificaciones guardado');
+  };
+
+  const handleRequestPushPermission = async () => {
+    const granted = await requestNotificationPermission();
+    if (granted) {
+      toast.success('Notificaciones push activadas');
+    } else {
+      toast.error('No se pudieron activar las notificaciones push');
+    }
   };
 
   const handleExport = () => {
@@ -62,7 +83,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-auto">
         <DialogHeader>
           <DialogTitle>Configuración</DialogTitle>
         </DialogHeader>
@@ -98,6 +119,56 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
               >
                 <Monitor className="w-4 h-4 mr-2" />
                 Sistema
+              </Button>
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Notifications */}
+          <div className="space-y-3">
+            <Label className="text-base font-medium flex items-center gap-2">
+              <Bell className="w-4 h-4" />
+              Notificaciones
+            </Label>
+            
+            {/* Email for notifications */}
+            <div className="space-y-2">
+              <Label className="text-sm text-muted-foreground">Correo para recordatorios</Label>
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    type="email"
+                    placeholder="tu@correo.com"
+                    value={emailInput}
+                    onChange={(e) => setEmailInput(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                <Button onClick={handleEmailSave} variant="outline">
+                  Guardar
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Recibirás recordatorios por correo en esta dirección
+              </p>
+            </div>
+
+            {/* Push notifications permission */}
+            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+              <div>
+                <p className="text-sm font-medium">Notificaciones push</p>
+                <p className="text-xs text-muted-foreground">
+                  Recibe alertas en tu navegador
+                </p>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleRequestPushPermission}
+              >
+                Activar
               </Button>
             </div>
           </div>

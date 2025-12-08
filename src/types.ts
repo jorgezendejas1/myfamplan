@@ -6,6 +6,18 @@ export type EventType = 'event' | 'task' | 'reminder' | 'birthday';
 
 export type RecurrenceType = 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly';
 
+export type NotificationType = 'email' | 'push';
+
+export type NotificationTimeUnit = 'minutes' | 'hours' | 'days' | 'weeks';
+
+export interface EventNotification {
+  id: string;
+  type: NotificationType;
+  time: number; // Amount of time before event
+  unit: NotificationTimeUnit;
+  sent?: boolean;
+}
+
 export interface CalendarEvent {
   id: string;
   title: string;
@@ -18,6 +30,7 @@ export interface CalendarEvent {
   recurrence: RecurrenceType;
   recurrenceEnd?: string; // ISO string - when recurrence ends
   location?: string;
+  notifications?: EventNotification[];
   isDeleted: boolean;
   deletedAt?: string;
   createdAt: string;
@@ -38,6 +51,7 @@ export interface Settings {
   weekStartsOn: 0 | 1; // 0 = Sunday, 1 = Monday
   timeFormat: '12h' | '24h';
   locale: string;
+  notificationEmail?: string; // Email for receiving notifications
 }
 
 export interface ChatMessage {
