@@ -1,0 +1,39 @@
+{
+  "name": "Calendario Clone",
+  "version": "1.0.0",
+  "description": "Aplicación de calendario inspirada en Google Calendar con React, TypeScript y Tailwind CSS",
+  "author": "Lovable",
+  "locale": "es",
+  "features": [
+    "Vistas: Mes, Semana, Día, Agenda",
+    "Eventos recurrentes (diario, semanal, mensual, anual)",
+    "Múltiples calendarios con colores",
+    "Importar/Exportar ICS",
+    "Papelera con soft-delete",
+    "Tema claro/oscuro/sistema",
+    "Atajos de teclado",
+    "Chatbot integrado (mock Gemini)",
+    "Drag & Drop",
+    "Offline con LocalStorage"
+  ],
+  "shortcuts": {
+    "J": "Siguiente período",
+    "K": "Período anterior",
+    "T": "Ir a hoy",
+    "C": "Crear evento",
+    "1": "Vista día",
+    "2": "Vista semana",
+    "3": "Vista mes",
+    "4": "Vista agenda",
+    "?": "Mostrar atajos"
+  },
+  "storage": {
+    "version": 1,
+    "keys": {
+      "events": "calendar_events",
+      "calendars": "calendar_calendars",
+      "settings": "calendar_settings",
+      "chatHistory": "calendar_chat_history"
+    }
+  }
+}
