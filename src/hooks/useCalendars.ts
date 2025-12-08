@@ -6,7 +6,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Calendar } from '@/types';
-import { DEFAULT_CALENDARS, STORAGE_KEYS } from '@/constants';
+import { DEFAULT_CALENDARS } from '@/constants';
 import { 
   getCalendars, 
   addCalendar as addCalendarToCloud, 
@@ -16,16 +16,7 @@ import {
 } from '@/services/calendarService';
 
 export function useCalendars() {
-  const [calendars, setCalendars] = useState<Calendar[]>(() => {
-    // Load from localStorage initially for fast startup
-    try {
-      const stored = localStorage.getItem(STORAGE_KEYS.CALENDARS);
-      return stored ? JSON.parse(stored) : DEFAULT_CALENDARS;
-    } catch {
-      return DEFAULT_CALENDARS;
-    }
-  });
-  
+  const [calendars, setCalendars] = useState<Calendar[]>(DEFAULT_CALENDARS);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const syncedRef = useRef(false);
@@ -36,9 +27,6 @@ export function useCalendars() {
       try {
         const cloudCalendars = await getCalendars();
         setCalendars(cloudCalendars);
-        
-        // Save to localStorage for offline access
-        localStorage.setItem(STORAGE_KEYS.CALENDARS, JSON.stringify(cloudCalendars));
         syncedRef.current = true;
       } catch (err) {
         console.error('Error fetching calendars:', err);
@@ -58,7 +46,6 @@ export function useCalendars() {
     const syncToCloud = async () => {
       try {
         await syncCalendars(calendars);
-        localStorage.setItem(STORAGE_KEYS.CALENDARS, JSON.stringify(calendars));
       } catch (err) {
         console.error('Error syncing calendars:', err);
       }

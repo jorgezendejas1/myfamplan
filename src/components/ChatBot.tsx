@@ -5,7 +5,7 @@
  * Uses Lovable AI for real-time conversational interactions.
  */
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useApp } from '../App';
 import { ChatMessage } from '../types';
 import { streamChat } from '../services/chatService';
@@ -44,18 +44,18 @@ const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose }) => {
     }
   }, [isOpen]);
 
-  // Show welcome message if no messages
-  useEffect(() => {
+  // Show welcome message if no messages (only add to local state, not cloud)
+  const welcomeMessage = useMemo<ChatMessage | null>(() => {
     if (isOpen && chatMessages.length === 0) {
-      const welcomeMessage: ChatMessage = {
-        id: crypto.randomUUID(),
+      return {
+        id: 'welcome-message',
         role: 'assistant',
         content: '¡Hola! 👋 Soy tu asistente de calendario con IA. Puedo ayudarte a:\n\n• **Crear eventos** - \"Agenda una reunión mañana a las 10\"\n• **Ver disponibilidad** - \"¿Qué tengo esta semana?\"\n• **Buscar eventos** - \"¿Tengo algo el viernes?\"\n• **Recordatorios** - \"Recuérdame llamar a María\"\n\n¿En qué puedo ayudarte?',
         timestamp: new Date().toISOString(),
       };
-      setChatMessages([welcomeMessage]);
     }
-  }, [isOpen, chatMessages.length, setChatMessages]);
+    return null;
+  }, [isOpen, chatMessages.length]);
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
@@ -132,8 +132,10 @@ const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose }) => {
 
   if (!isOpen) return null;
 
-  // Combine stored messages with streaming content for display
-  const displayMessages = [...chatMessages];
+  // Combine stored messages with welcome message for display
+  const displayMessages = welcomeMessage 
+    ? [welcomeMessage, ...chatMessages] 
+    : chatMessages;
 
   return (
     <div 

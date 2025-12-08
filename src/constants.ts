@@ -85,10 +85,3 @@ export const KEYBOARD_SHORTCUTS = {
   '/': 'Buscar',
   '?': 'Mostrar atajos',
 } as const;
-
-export const STORAGE_KEYS = {
-  EVENTS: 'calendar_events',
-  CALENDARS: 'calendar_calendars',
-  SETTINGS: 'calendar_settings',
-  CHAT_HISTORY: 'calendar_chat_history',
-} as const;
