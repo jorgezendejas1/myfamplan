@@ -4,6 +4,8 @@ import { STORAGE_KEYS, DEFAULT_CALENDARS, DEFAULT_SETTINGS } from './constants';
 import { addMonths, addWeeks, addDays } from './utils/dateUtils';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
+import MobileDrawer from './components/MobileDrawer';
+import SidebarContent from './components/SidebarContent';
 import MonthView from './components/MonthView';
 import WeekView from './components/WeekView';
 import DayView from './components/DayView';
@@ -13,6 +15,9 @@ import SettingsModal from './components/SettingsModal';
 import TrashModal from './components/TrashModal';
 import ChatBot from './components/ChatBot';
 import InstructionsModal from './components/InstructionsModal';
+import OnboardingModal from './components/OnboardingModal';
+import { useOnboarding } from './hooks/useOnboarding';
+import { useIsMobile } from './hooks/use-mobile';
 import { Plus, MessageCircle } from 'lucide-react';
 
 // Context for global state
@@ -88,7 +93,12 @@ function App() {
   const [showChatBot, setShowChatBot] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [newEventDate, setNewEventDate] = useState<Date | null>(null);
+
+  // Hooks
+  const isMobile = useIsMobile();
+  const { showOnboarding, completeOnboarding, closeOnboarding } = useOnboarding();
 
   // Persist to localStorage
   useEffect(() => {
@@ -254,19 +264,32 @@ function App() {
         {/* Header */}
         <Header 
           onNavigate={navigatePeriod}
-          onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+          onToggleSidebar={() => isMobile ? setMobileDrawerOpen(true) : setSidebarOpen(!sidebarOpen)}
           onOpenSettings={() => setShowSettingsModal(true)}
           onOpenTrash={() => setShowTrashModal(true)}
           onShowInstructions={() => setShowInstructions(true)}
         />
 
+        {/* Mobile Drawer */}
+        <MobileDrawer 
+          isOpen={mobileDrawerOpen} 
+          onClose={() => setMobileDrawerOpen(false)}
+        >
+          <SidebarContent 
+            onCreateEvent={() => handleCreateEvent()}
+            onCloseMobile={() => setMobileDrawerOpen(false)}
+          />
+        </MobileDrawer>
+
         {/* Main content */}
         <div className="flex flex-1 overflow-hidden">
-          {/* Sidebar */}
-          <Sidebar 
-            isOpen={sidebarOpen}
-            onCreateEvent={() => handleCreateEvent()}
-          />
+          {/* Desktop Sidebar */}
+          {!isMobile && (
+            <Sidebar 
+              isOpen={sidebarOpen}
+              onCreateEvent={() => handleCreateEvent()}
+            />
+          )}
 
           {/* Calendar view */}
           <main className="flex-1 overflow-hidden">
@@ -343,6 +366,13 @@ function App() {
         <InstructionsModal
           isOpen={showInstructions}
           onClose={() => setShowInstructions(false)}
+        />
+
+        {/* Onboarding */}
+        <OnboardingModal
+          isOpen={showOnboarding}
+          onClose={closeOnboarding}
+          onComplete={completeOnboarding}
         />
 
         {/* ChatBot */}
