@@ -23,7 +23,9 @@ serve(async (req) => {
     console.log("Google Auth action:", action);
 
     if (action === "get-auth-url") {
-      const redirectUri = `${url.origin}/google-auth?action=callback`;
+      // Use the correct Supabase functions URL format
+      const supabaseUrl = SUPABASE_URL.replace('.supabase.co', '.supabase.co/functions/v1');
+      const redirectUri = `${supabaseUrl}/google-auth?action=callback`;
       const state = crypto.randomUUID();
       
       const authUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
@@ -58,7 +60,9 @@ serve(async (req) => {
         return Response.redirect(`${frontendUrl}?google_auth_error=no_code`, 302);
       }
 
-      const redirectUri = `${url.origin}/google-auth?action=callback`;
+      // Use the correct Supabase functions URL format
+      const supabaseUrl = SUPABASE_URL.replace('.supabase.co', '.supabase.co/functions/v1');
+      const redirectUri = `${supabaseUrl}/google-auth?action=callback`;
       
       // Exchange code for tokens
       const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
