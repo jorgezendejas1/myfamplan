@@ -9,7 +9,6 @@ import {
   ChevronRight, 
   Settings, 
   Trash2, 
-  Search,
   HelpCircle,
   Calendar
 } from 'lucide-react';
@@ -20,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
+import SyncIndicator from './SyncIndicator';
 
 interface HeaderProps {
   onNavigate: (direction: 'prev' | 'next' | 'today') => void;
@@ -27,6 +27,7 @@ interface HeaderProps {
   onOpenSettings: () => void;
   onOpenTrash: () => void;
   onShowInstructions: () => void;
+  onManualSync?: () => void;
 }
 
 const VIEW_LABELS: Record<ViewType, string> = {
@@ -42,6 +43,7 @@ const Header: React.FC<HeaderProps> = ({
   onOpenSettings,
   onOpenTrash,
   onShowInstructions,
+  onManualSync,
 }) => {
   const { currentDate, view, setView } = useApp();
 
@@ -167,6 +169,9 @@ const Header: React.FC<HeaderProps> = ({
 
       {/* Actions */}
       <div className="flex items-center gap-0.5">
+        {onManualSync && (
+          <SyncIndicator onSync={onManualSync} />
+        )}
         <Button
           variant="ghost"
           size="icon"

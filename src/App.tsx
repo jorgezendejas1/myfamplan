@@ -80,7 +80,7 @@ function App() {
   const { showOnboarding, completeOnboarding, closeOnboarding } = useOnboarding();
 
   // Google Calendar auto-sync
-  useGoogleSync({
+  const { manualSync } = useGoogleSync({
     onEventsImported: importGoogleEvents,
     enabled: true,
   });
@@ -228,6 +228,7 @@ function App() {
           onOpenSettings={() => setShowSettingsModal(true)}
           onOpenTrash={() => setShowTrashModal(true)}
           onShowInstructions={() => setShowInstructions(true)}
+          onManualSync={manualSync}
         />
 
         {/* Mobile Drawer */}
