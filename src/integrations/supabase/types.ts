@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      calendars: {
+        Row: {
+          calendar_id: string
+          color: string
+          created_at: string
+          id: string
+          is_default: boolean
+          is_visible: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          calendar_id: string
+          color?: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          is_visible?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          calendar_id?: string
+          color?: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          is_visible?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       event_sync_mapping: {
         Row: {
           created_at: string | null

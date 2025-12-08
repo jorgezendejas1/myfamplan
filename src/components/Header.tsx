@@ -61,24 +61,24 @@ const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="h-16 border-b border-border bg-card flex items-center px-4 gap-2 shrink-0">
+    <header className="h-14 sm:h-16 border-b border-border bg-card flex items-center px-2 sm:px-4 gap-1 sm:gap-2 shrink-0">
       {/* Menu toggle */}
       <Button
         variant="ghost"
         size="icon"
         onClick={onToggleSidebar}
-        className="shrink-0"
+        className="shrink-0 h-9 w-9 sm:h-10 sm:w-10"
         aria-label="Toggle sidebar"
       >
         <Menu className="w-5 h-5" />
       </Button>
 
       {/* Logo */}
-      <div className="flex items-center gap-2 mr-4">
-        <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
-          <Calendar className="w-5 h-5 text-primary-foreground" />
+      <div className="flex items-center gap-1 sm:gap-2 mr-1 sm:mr-4">
+        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary flex items-center justify-center shrink-0">
+          <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-primary-foreground" />
         </div>
-        <span className="text-xl font-display font-medium hidden sm:block">Calendario</span>
+        <span className="text-lg sm:text-xl font-display font-medium hidden md:block">Calendario</span>
       </div>
 
       {/* Today button */}
@@ -86,7 +86,7 @@ const Header: React.FC<HeaderProps> = ({
         variant="outline"
         size="sm"
         onClick={() => onNavigate('today')}
-        className="hidden sm:flex"
+        className="hidden md:flex h-8 text-xs sm:text-sm"
       >
         Hoy
       </Button>
@@ -98,21 +98,23 @@ const Header: React.FC<HeaderProps> = ({
           size="icon"
           onClick={() => onNavigate('prev')}
           aria-label="Anterior"
+          className="h-8 w-8 sm:h-9 sm:w-9"
         >
-          <ChevronLeft className="w-5 h-5" />
+          <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
         </Button>
         <Button
           variant="ghost"
           size="icon"
           onClick={() => onNavigate('next')}
           aria-label="Siguiente"
+          className="h-8 w-8 sm:h-9 sm:w-9"
         >
-          <ChevronRight className="w-5 h-5" />
+          <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
         </Button>
       </div>
 
       {/* Current period title */}
-      <h1 className="text-lg md:text-xl font-display font-medium capitalize ml-2">
+      <h1 className="text-sm sm:text-lg md:text-xl font-display font-medium capitalize ml-1 sm:ml-2 truncate">
         {getTitle()}
       </h1>
 
@@ -164,30 +166,33 @@ const Header: React.FC<HeaderProps> = ({
       </DropdownMenu>
 
       {/* Actions */}
-      <div className="flex items-center gap-1">
+      <div className="flex items-center">
         <Button
           variant="ghost"
           size="icon"
           onClick={onShowInstructions}
           aria-label="Ayuda"
+          className="hidden sm:flex h-8 w-8 sm:h-9 sm:w-9"
         >
-          <HelpCircle className="w-5 h-5" />
+          <HelpCircle className="w-4 h-4 sm:w-5 sm:h-5" />
         </Button>
         <Button
           variant="ghost"
           size="icon"
           onClick={onOpenTrash}
           aria-label="Papelera"
+          className="hidden sm:flex h-8 w-8 sm:h-9 sm:w-9"
         >
-          <Trash2 className="w-5 h-5" />
+          <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
         </Button>
         <Button
           variant="ghost"
           size="icon"
           onClick={onOpenSettings}
           aria-label="Configuración"
+          className="h-8 w-8 sm:h-9 sm:w-9"
         >
-          <Settings className="w-5 h-5" />
+          <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
         </Button>
       </div>
     </header>

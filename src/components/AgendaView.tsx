@@ -38,25 +38,26 @@ const AgendaView: React.FC<AgendaViewProps> = ({
   const hasNoEvents = agendaGroups.length === 0;
 
   return (
-    <div className="h-full flex flex-col bg-background overflow-auto scrollbar-thin">
+    <div className="h-full flex flex-col bg-background overflow-hidden">
       {/* Header info */}
-      <div className="p-4 border-b border-border bg-card shrink-0">
-        <div className="text-sm text-muted-foreground">
+      <div className="p-3 sm:p-4 border-b border-border bg-card shrink-0">
+        <div className="text-xs sm:text-sm text-muted-foreground">
           Próximos 30 días desde {formatDate(currentDate, "d 'de' MMMM")}
         </div>
       </div>
 
-      {/* Empty state */}
+      {/* Scrollable content area */}
+      <div className="flex-1 overflow-auto scrollbar-thin pb-24 sm:pb-20">{/* Empty state */}
       {hasNoEvents && (
-        <div className="flex-1 flex items-center justify-center p-8">
+        <div className="flex-1 flex items-center justify-center p-8 min-h-[50vh]">
           <div className="text-center max-w-sm">
-            <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-muted flex items-center justify-center">
-              <CalendarOff className="w-12 h-12 text-muted-foreground" />
+            <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-4 sm:mb-6 rounded-full bg-muted flex items-center justify-center">
+              <CalendarOff className="w-10 h-10 sm:w-12 sm:h-12 text-muted-foreground" />
             </div>
-            <h3 className="text-xl font-display font-medium mb-2">
+            <h3 className="text-lg sm:text-xl font-display font-medium mb-2">
               No hay eventos programados
             </h3>
-            <p className="text-muted-foreground">
+            <p className="text-sm sm:text-base text-muted-foreground">
               No tienes eventos en los próximos 30 días. ¡Crea uno nuevo usando el botón + o presiona C!
             </p>
           </div>
@@ -65,26 +66,26 @@ const AgendaView: React.FC<AgendaViewProps> = ({
 
       {/* Agenda list */}
       {!hasNoEvents && (
-        <div className="flex-1">
+        <div>
           {agendaGroups.map((group, groupIndex) => (
             <div key={group.date.toISOString()} className="animate-fade-in">
               {/* Date header - sticky */}
-              <div className="sticky-date-header px-4 py-3">
-                <div className="flex items-center gap-3">
+              <div className="sticky-date-header px-3 sm:px-4 py-2 sm:py-3">
+                <div className="flex items-center gap-2 sm:gap-3">
                   <div className={cn(
-                    'text-2xl font-light',
+                    'text-xl sm:text-2xl font-light',
                     group.label === 'Hoy' && 'text-primary font-medium'
                   )}>
                     {formatDate(group.date, 'd')}
                   </div>
                   <div>
                     <div className={cn(
-                      'text-sm font-medium',
+                      'text-xs sm:text-sm font-medium',
                       group.label === 'Hoy' && 'text-primary'
                     )}>
                       {group.label}
                     </div>
-                    <div className="text-xs text-muted-foreground capitalize">
+                    <div className="text-[10px] sm:text-xs text-muted-foreground capitalize">
                       {formatDate(group.date, 'MMMM yyyy')}
                     </div>
                   </div>
@@ -97,12 +98,12 @@ const AgendaView: React.FC<AgendaViewProps> = ({
                   <button
                     key={event.id}
                     onClick={() => onSelectEvent(event)}
-                    className="w-full text-left px-4 py-3 hover:bg-secondary/50 transition-colors flex gap-4 group"
+                    className="w-full text-left px-3 sm:px-4 py-2.5 sm:py-3 hover:bg-secondary/50 transition-colors flex gap-2 sm:gap-4 group active:bg-secondary/70"
                   >
                     {/* Time column */}
-                    <div className="w-16 shrink-0 text-sm text-muted-foreground">
+                    <div className="w-14 sm:w-16 shrink-0 text-xs sm:text-sm text-muted-foreground">
                       {event.allDay ? (
-                        <span className="text-xs uppercase font-medium">Todo el día</span>
+                        <span className="text-[10px] sm:text-xs uppercase font-medium">Todo el día</span>
                       ) : (
                         formatTime(event.start, settings.timeFormat === '24h')
                       )}
@@ -117,13 +118,13 @@ const AgendaView: React.FC<AgendaViewProps> = ({
                     {/* Event details */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start gap-2">
-                        <h4 className="font-medium text-foreground group-hover:text-primary transition-colors truncate">
+                        <h4 className="font-medium text-sm sm:text-base text-foreground group-hover:text-primary transition-colors truncate">
                           {event.title}
                         </h4>
                       </div>
                       
                       {/* Meta info */}
-                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-xs text-muted-foreground">
+                      <div className="flex flex-wrap items-center gap-x-3 sm:gap-x-4 gap-y-1 mt-0.5 sm:mt-1 text-[10px] sm:text-xs text-muted-foreground">
                         {!event.allDay && (
                           <span className="flex items-center gap-1">
                             <Clock className="w-3 h-3" />
@@ -131,20 +132,20 @@ const AgendaView: React.FC<AgendaViewProps> = ({
                           </span>
                         )}
                         {event.location && (
-                          <span className="flex items-center gap-1 truncate">
+                          <span className="flex items-center gap-1 truncate max-w-[150px] sm:max-w-none">
                             <MapPin className="w-3 h-3 shrink-0" />
                             {event.location}
                           </span>
                         )}
-                        <span className="flex items-center gap-1">
+                        <span className="hidden sm:flex items-center gap-1">
                           <Calendar className="w-3 h-3" />
                           {getCalendarName(event.calendarId)}
                         </span>
                       </div>
 
-                      {/* Description preview */}
+                      {/* Description preview - hidden on mobile */}
                       {event.description && (
-                        <p className="mt-1 text-sm text-muted-foreground line-clamp-1">
+                        <p className="hidden sm:block mt-1 text-sm text-muted-foreground line-clamp-1">
                           {event.description}
                         </p>
                       )}
@@ -156,6 +157,7 @@ const AgendaView: React.FC<AgendaViewProps> = ({
           ))}
         </div>
       )}
+      </div>
     </div>
   );
 };
