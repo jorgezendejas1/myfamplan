@@ -18,6 +18,7 @@ import InstructionsModal from './components/InstructionsModal';
 import OnboardingModal from './components/OnboardingModal';
 import { useOnboarding } from './hooks/useOnboarding';
 import { useIsMobile } from './hooks/use-mobile';
+import { useGoogleSync } from './hooks/useGoogleSync';
 import { startNotificationService, stopNotificationService } from './services/notificationService';
 import { Plus, MessageCircle } from 'lucide-react';
 
@@ -100,6 +101,20 @@ function App() {
   // Hooks
   const isMobile = useIsMobile();
   const { showOnboarding, completeOnboarding, closeOnboarding } = useOnboarding();
+
+  // Google Calendar auto-sync
+  const handleGoogleEventsImported = useCallback((googleEvents: CalendarEvent[]) => {
+    setEvents(prev => {
+      // Filter out existing Google events to avoid duplicates
+      const nonGoogleEvents = prev.filter(e => !e.id.startsWith('google-'));
+      return [...nonGoogleEvents, ...googleEvents];
+    });
+  }, []);
+
+  useGoogleSync({
+    onEventsImported: handleGoogleEventsImported,
+    enabled: true,
+  });
 
   // Start notification service
   useEffect(() => {
