@@ -185,11 +185,20 @@
     background-color: hsl(var(--calendar-hover));
   }
 
-  /* Fab button */
+  /* Fab button - responsive positioning */
   .fab {
-    @apply fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg flex items-center justify-center;
+    @apply fixed w-14 h-14 rounded-full shadow-lg flex items-center justify-center;
     @apply bg-primary text-primary-foreground hover:shadow-xl transition-all duration-200;
     @apply hover:scale-105 active:scale-95;
+    @apply bottom-6 right-6;
+    @apply md:bottom-6 md:right-6;
+  }
+
+  /* Mobile adjustments */
+  @media (max-width: 640px) {
+    .fab {
+      @apply w-12 h-12 bottom-4 right-4;
+    }
   }
 
   /* Glass effect for modals */

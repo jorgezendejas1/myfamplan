@@ -137,7 +137,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose }) => {
 
   return (
     <div 
-      className="fixed bottom-24 right-6 w-96 max-w-[calc(100vw-3rem)] h-[500px] max-h-[calc(100vh-8rem)] bg-card rounded-2xl shadow-calendar-xl border border-border flex flex-col overflow-hidden z-50 animate-scale-in"
+      className="fixed bottom-20 right-4 sm:bottom-24 sm:right-6 w-[calc(100vw-2rem)] sm:w-96 max-w-[400px] h-[60vh] sm:h-[500px] max-h-[calc(100vh-8rem)] bg-card rounded-2xl shadow-calendar-xl border border-border flex flex-col overflow-hidden z-50 animate-scale-in"
       role="dialog"
       aria-label="Asistente de calendario"
     >

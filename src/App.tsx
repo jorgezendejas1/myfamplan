@@ -332,13 +332,13 @@ function App() {
           <Plus className="w-6 h-6" />
         </button>
 
-        {/* Chat FAB */}
+        {/* Chat FAB - responsive position */}
         <button
           onClick={() => setShowChatBot(!showChatBot)}
-          className="fixed bottom-6 right-24 w-12 h-12 rounded-full shadow-calendar flex items-center justify-center bg-card text-foreground hover:shadow-calendar-lg transition-all duration-200 hover:scale-105 active:scale-95 z-40"
+          className="fixed bottom-4 right-20 sm:bottom-6 sm:right-24 w-10 h-10 sm:w-12 sm:h-12 rounded-full shadow-calendar flex items-center justify-center bg-card text-foreground hover:shadow-calendar-lg transition-all duration-200 hover:scale-105 active:scale-95 z-40"
           aria-label="Abrir asistente"
         >
-          <MessageCircle className="w-5 h-5" />
+          <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" />
         </button>
 
         {/* Modals */}
