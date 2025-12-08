@@ -65,7 +65,7 @@ export const DEFAULT_CALENDARS: Calendar[] = [
 
 export const DEFAULT_SETTINGS: Settings = {
   theme: 'system',
-  defaultView: 'month',
+  defaultView: 'agenda',
   weekStartsOn: 1, // Monday
   timeFormat: '24h',
   locale: 'es',

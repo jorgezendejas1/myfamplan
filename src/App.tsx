@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { CalendarEvent, Calendar, Settings, ViewType, ChatMessage } from './types';
-import { STORAGE_KEYS, DEFAULT_CALENDARS, DEFAULT_SETTINGS } from './constants';
+import { STORAGE_KEYS, DEFAULT_SETTINGS } from './constants';
 import { addMonths, addWeeks, addDays } from './utils/dateUtils';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
@@ -19,6 +19,7 @@ import OnboardingModal from './components/OnboardingModal';
 import { useOnboarding } from './hooks/useOnboarding';
 import { useIsMobile } from './hooks/use-mobile';
 import { useGoogleSync } from './hooks/useGoogleSync';
+import { useCalendars } from './hooks/useCalendars';
 import { startNotificationService, stopNotificationService } from './services/notificationService';
 import { Plus, MessageCircle } from 'lucide-react';
 
@@ -76,9 +77,10 @@ function App() {
   const [events, setEvents] = useState<CalendarEvent[]>(() => 
     loadFromStorage(STORAGE_KEYS.EVENTS, [])
   );
-  const [calendars, setCalendars] = useState<Calendar[]>(() => 
-    loadFromStorage(STORAGE_KEYS.CALENDARS, DEFAULT_CALENDARS)
-  );
+  
+  // Use cloud-synced calendars hook
+  const { calendars, setCalendars } = useCalendars();
+  
   const [settings, setSettings] = useState<Settings>(() => 
     loadFromStorage(STORAGE_KEYS.SETTINGS, DEFAULT_SETTINGS)
   );
@@ -87,7 +89,11 @@ function App() {
   );
 
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [view, setView] = useState<ViewType>(settings.defaultView);
+  // Use settings.defaultView which is now 'agenda'
+  const [view, setView] = useState<ViewType>(() => {
+    const savedSettings = loadFromStorage<Settings>(STORAGE_KEYS.SETTINGS, DEFAULT_SETTINGS);
+    return savedSettings.defaultView;
+  });
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [showEventModal, setShowEventModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -138,9 +144,7 @@ function App() {
     saveToStorage(STORAGE_KEYS.EVENTS, events);
   }, [events]);
 
-  useEffect(() => {
-    saveToStorage(STORAGE_KEYS.CALENDARS, calendars);
-  }, [calendars]);
+  // Calendars are now synced via useCalendars hook - no need for localStorage sync here
 
   useEffect(() => {
     saveToStorage(STORAGE_KEYS.SETTINGS, settings);
@@ -368,7 +372,7 @@ function App() {
         {/* Chat FAB - responsive position */}
         <button
           onClick={() => setShowChatBot(!showChatBot)}
-          className="fixed bottom-4 right-20 sm:bottom-6 sm:right-24 w-10 h-10 sm:w-12 sm:h-12 rounded-full shadow-calendar flex items-center justify-center bg-card text-foreground hover:shadow-calendar-lg transition-all duration-200 hover:scale-105 active:scale-95 z-40"
+          className="fixed bottom-20 right-20 sm:bottom-6 sm:right-24 w-10 h-10 sm:w-12 sm:h-12 rounded-full shadow-calendar flex items-center justify-center bg-card text-foreground hover:shadow-calendar-lg transition-all duration-200 hover:scale-105 active:scale-95 z-40"
           aria-label="Abrir asistente"
         >
           <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" />
