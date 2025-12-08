@@ -22,6 +22,8 @@ import { downloadICS, importFromICS } from '../utils/icsUtils';
 import { Download, Upload, Moon, Sun, Monitor, Mail, Bell } from 'lucide-react';
 import { toast } from 'sonner';
 import { requestNotificationPermission } from '../services/notificationService';
+import { GoogleAccountsManager } from './GoogleAccountsManager';
+import type { CalendarEvent } from '../types';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -79,6 +81,16 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
       reader.readAsText(file);
     };
     input.click();
+  };
+
+  const handleGoogleEventsImported = (googleEvents: CalendarEvent[]) => {
+    // Merge Google events avoiding duplicates
+    setEvents(prev => {
+      const existingIds = new Set(prev.map(e => e.id));
+      const newEvents = googleEvents.filter(e => !existingIds.has(e.id));
+      return [...prev, ...newEvents];
+    });
+    toast.success(`${googleEvents.length} eventos de Google Calendar importados`);
   };
 
   return (
@@ -226,6 +238,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                 <SelectItem value="12h">12 horas</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          <Separator />
+
+          {/* Google Calendar Sync */}
+          <div className="space-y-3">
+            <GoogleAccountsManager onEventsImported={handleGoogleEventsImported} />
           </div>
 
           <Separator />
