@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { CalendarEvent, Calendar, Settings, ViewType, ChatMessage } from './types';
-import { STORAGE_KEYS, DEFAULT_SETTINGS } from './constants';
 import { addMonths, addWeeks, addDays } from './utils/dateUtils';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
@@ -20,6 +19,9 @@ import { useOnboarding } from './hooks/useOnboarding';
 import { useIsMobile } from './hooks/use-mobile';
 import { useGoogleSync } from './hooks/useGoogleSync';
 import { useCalendars } from './hooks/useCalendars';
+import { useEvents } from './hooks/useEvents';
+import { useSettings } from './hooks/useSettings';
+import { useChatHistory } from './hooks/useChatHistory';
 import { startNotificationService, stopNotificationService } from './services/notificationService';
 import { Plus, MessageCircle } from 'lucide-react';
 
@@ -53,47 +55,16 @@ export const useApp = () => {
   return context;
 };
 
-// Load from localStorage
-const loadFromStorage = <T,>(key: string, defaultValue: T): T => {
-  try {
-    const stored = localStorage.getItem(key);
-    return stored ? JSON.parse(stored) : defaultValue;
-  } catch {
-    return defaultValue;
-  }
-};
-
-// Save to localStorage
-const saveToStorage = <T,>(key: string, value: T): void => {
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
-  } catch (error) {
-    console.error('Error saving to localStorage:', error);
-  }
-};
-
 function App() {
-  // State
-  const [events, setEvents] = useState<CalendarEvent[]>(() => 
-    loadFromStorage(STORAGE_KEYS.EVENTS, [])
-  );
-  
-  // Use cloud-synced calendars hook
+  // Cloud-synced hooks
+  const { events, setEvents, addEvent, updateEvent, deleteEvent, restoreEvent, importGoogleEvents } = useEvents();
   const { calendars, setCalendars } = useCalendars();
-  
-  const [settings, setSettings] = useState<Settings>(() => 
-    loadFromStorage(STORAGE_KEYS.SETTINGS, DEFAULT_SETTINGS)
-  );
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>(() => 
-    loadFromStorage(STORAGE_KEYS.CHAT_HISTORY, [])
-  );
+  const { settings, setSettings } = useSettings();
+  const { chatMessages, setChatMessages } = useChatHistory();
 
   const [currentDate, setCurrentDate] = useState(new Date());
-  // Use settings.defaultView which is now 'agenda'
-  const [view, setView] = useState<ViewType>(() => {
-    const savedSettings = loadFromStorage<Settings>(STORAGE_KEYS.SETTINGS, DEFAULT_SETTINGS);
-    return savedSettings.defaultView;
-  });
+  // Always use 'agenda' as default view
+  const [view, setView] = useState<ViewType>('agenda');
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [showEventModal, setShowEventModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -109,16 +80,8 @@ function App() {
   const { showOnboarding, completeOnboarding, closeOnboarding } = useOnboarding();
 
   // Google Calendar auto-sync
-  const handleGoogleEventsImported = useCallback((googleEvents: CalendarEvent[]) => {
-    setEvents(prev => {
-      // Filter out existing Google events to avoid duplicates
-      const nonGoogleEvents = prev.filter(e => !e.id.startsWith('google-'));
-      return [...nonGoogleEvents, ...googleEvents];
-    });
-  }, []);
-
   useGoogleSync({
-    onEventsImported: handleGoogleEventsImported,
+    onEventsImported: importGoogleEvents,
     enabled: true,
   });
 
@@ -139,21 +102,6 @@ function App() {
     // The service will pick up changes on next interval
   }, [events, settings.notificationEmail]);
 
-  // Persist to localStorage
-  useEffect(() => {
-    saveToStorage(STORAGE_KEYS.EVENTS, events);
-  }, [events]);
-
-  // Calendars are now synced via useCalendars hook - no need for localStorage sync here
-
-  useEffect(() => {
-    saveToStorage(STORAGE_KEYS.SETTINGS, settings);
-  }, [settings]);
-
-  useEffect(() => {
-    saveToStorage(STORAGE_KEYS.CHAT_HISTORY, chatMessages);
-  }, [chatMessages]);
-
   // Theme handling
   useEffect(() => {
     const root = document.documentElement;
@@ -165,31 +113,6 @@ function App() {
       root.classList.remove('dark');
     }
   }, [settings.theme]);
-
-  // CRUD operations
-  const addEvent = useCallback((event: CalendarEvent) => {
-    setEvents(prev => [...prev, event]);
-  }, []);
-
-  const updateEvent = useCallback((event: CalendarEvent) => {
-    setEvents(prev => prev.map(e => e.id === event.id ? event : e));
-  }, []);
-
-  const deleteEvent = useCallback((id: string, permanent = false) => {
-    if (permanent) {
-      setEvents(prev => prev.filter(e => e.id !== id));
-    } else {
-      setEvents(prev => prev.map(e => 
-        e.id === id ? { ...e, isDeleted: true, deletedAt: new Date().toISOString() } : e
-      ));
-    }
-  }, []);
-
-  const restoreEvent = useCallback((id: string) => {
-    setEvents(prev => prev.map(e => 
-      e.id === id ? { ...e, isDeleted: false, deletedAt: undefined } : e
-    ));
-  }, []);
 
   // Navigation
   const navigatePeriod = useCallback((direction: 'prev' | 'next' | 'today') => {
@@ -285,12 +208,12 @@ function App() {
     setEvents,
     setCalendars,
     setSettings,
+    updateEvent,
     setCurrentDate,
     setView,
     setSelectedEvent,
     setChatMessages,
     addEvent,
-    updateEvent,
     deleteEvent,
     restoreEvent,
   };

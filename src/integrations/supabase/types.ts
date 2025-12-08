@@ -47,6 +47,33 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_history: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          message_id: string
+          role: string
+          timestamp: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          message_id: string
+          role: string
+          timestamp?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          message_id?: string
+          role?: string
+          timestamp?: string
+        }
+        Relationships: []
+      }
       event_sync_mapping: {
         Row: {
           created_at: string | null
@@ -84,6 +111,66 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      events: {
+        Row: {
+          all_day: boolean | null
+          calendar_id: string
+          created_at: string
+          deleted_at: string | null
+          description: string | null
+          end_time: string
+          event_id: string
+          event_type: string
+          id: string
+          is_deleted: boolean | null
+          location: string | null
+          notifications: Json | null
+          recurrence: string | null
+          recurrence_end: string | null
+          start_time: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          all_day?: boolean | null
+          calendar_id: string
+          created_at?: string
+          deleted_at?: string | null
+          description?: string | null
+          end_time: string
+          event_id: string
+          event_type?: string
+          id?: string
+          is_deleted?: boolean | null
+          location?: string | null
+          notifications?: Json | null
+          recurrence?: string | null
+          recurrence_end?: string | null
+          start_time: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          all_day?: boolean | null
+          calendar_id?: string
+          created_at?: string
+          deleted_at?: string | null
+          description?: string | null
+          end_time?: string
+          event_id?: string
+          event_type?: string
+          id?: string
+          is_deleted?: boolean | null
+          location?: string | null
+          notifications?: Json | null
+          recurrence?: string | null
+          recurrence_end?: string | null
+          start_time?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       google_accounts: {
         Row: {
@@ -124,6 +211,45 @@ export type Database = {
           sync_token?: string | null
           token_expires_at?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      settings: {
+        Row: {
+          created_at: string
+          default_view: string | null
+          id: string
+          locale: string | null
+          notification_email: string | null
+          settings_key: string
+          theme: string | null
+          time_format: string | null
+          updated_at: string
+          week_starts_on: number | null
+        }
+        Insert: {
+          created_at?: string
+          default_view?: string | null
+          id?: string
+          locale?: string | null
+          notification_email?: string | null
+          settings_key?: string
+          theme?: string | null
+          time_format?: string | null
+          updated_at?: string
+          week_starts_on?: number | null
+        }
+        Update: {
+          created_at?: string
+          default_view?: string | null
+          id?: string
+          locale?: string | null
+          notification_email?: string | null
+          settings_key?: string
+          theme?: string | null
+          time_format?: string | null
+          updated_at?: string
+          week_starts_on?: number | null
         }
         Relationships: []
       }
