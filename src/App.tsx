@@ -18,6 +18,7 @@ import InstructionsModal from './components/InstructionsModal';
 import OnboardingModal from './components/OnboardingModal';
 import { useOnboarding } from './hooks/useOnboarding';
 import { useIsMobile } from './hooks/use-mobile';
+import { startNotificationService, stopNotificationService } from './services/notificationService';
 import { Plus, MessageCircle } from 'lucide-react';
 
 // Context for global state
@@ -99,6 +100,23 @@ function App() {
   // Hooks
   const isMobile = useIsMobile();
   const { showOnboarding, completeOnboarding, closeOnboarding } = useOnboarding();
+
+  // Start notification service
+  useEffect(() => {
+    startNotificationService(
+      () => events,
+      () => settings.notificationEmail
+    );
+
+    return () => {
+      stopNotificationService();
+    };
+  }, []);
+
+  // Update notification service when events or email change
+  useEffect(() => {
+    // The service will pick up changes on next interval
+  }, [events, settings.notificationEmail]);
 
   // Persist to localStorage
   useEffect(() => {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../App';
-import { CalendarEvent, EventType, RecurrenceType } from '../types';
+import { CalendarEvent, EventType, RecurrenceType, EventNotification } from '../types';
 import { formatDate, parseISO } from '../utils/dateUtils';
 import { EVENT_TYPE_LABELS, RECURRENCE_LABELS, EVENT_TYPE_ICONS } from '../constants';
 import { cn } from '@/lib/utils';
@@ -22,7 +22,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Calendar, MapPin, Clock, Repeat, Trash2, X } from 'lucide-react';
+import { Calendar, MapPin, Clock, Repeat, Trash2, Bell } from 'lucide-react';
+import NotificationEditor from './NotificationEditor';
 
 interface EventModalProps {
   isOpen: boolean;
@@ -60,6 +61,7 @@ const EventModal: React.FC<EventModalProps> = ({
   const [eventType, setEventType] = useState<EventType>('event');
   const [recurrence, setRecurrence] = useState<RecurrenceType>('none');
   const [location, setLocation] = useState('');
+  const [notifications, setNotifications] = useState<EventNotification[]>([]);
 
   // Reset form when modal opens/closes or event changes
   useEffect(() => {
@@ -74,6 +76,7 @@ const EventModal: React.FC<EventModalProps> = ({
         setEventType(event.type);
         setRecurrence(event.recurrence);
         setLocation(event.location || '');
+        setNotifications(event.notifications || []);
       } else {
         setTitle('');
         setDescription('');
@@ -84,6 +87,13 @@ const EventModal: React.FC<EventModalProps> = ({
         setEventType('event');
         setRecurrence('none');
         setLocation('');
+        // Default notification for new events
+        setNotifications([{
+          id: crypto.randomUUID(),
+          type: 'push',
+          time: 30,
+          unit: 'minutes',
+        }]);
       }
     }
   }, [isOpen, event, initialDate, calendars]);
@@ -103,6 +113,7 @@ const EventModal: React.FC<EventModalProps> = ({
       type: eventType,
       recurrence,
       location: location.trim() || undefined,
+      notifications: notifications.length > 0 ? notifications : undefined,
       isDeleted: false,
       createdAt: event?.createdAt || now,
       updatedAt: now,
@@ -152,14 +163,14 @@ const EventModal: React.FC<EventModalProps> = ({
           </div>
 
           {/* Event type */}
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             {(Object.keys(EVENT_TYPE_LABELS) as EventType[]).map((type) => (
               <Button
                 key={type}
                 variant={eventType === type ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setEventType(type)}
-                className="flex-1"
+                className="flex-1 min-w-[80px]"
               >
                 {EVENT_TYPE_LABELS[type]}
               </Button>
@@ -171,19 +182,19 @@ const EventModal: React.FC<EventModalProps> = ({
             <div className="flex items-center gap-3">
               <Clock className="w-5 h-5 text-muted-foreground shrink-0" />
               <div className="flex-1 space-y-2">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <Input
                     type={allDay ? 'date' : 'datetime-local'}
                     value={allDay ? start.split('T')[0] : start}
                     onChange={(e) => setStart(allDay ? `${e.target.value}T00:00` : e.target.value)}
-                    className="flex-1"
+                    className="flex-1 min-w-[140px]"
                   />
                   <span className="text-muted-foreground">—</span>
                   <Input
                     type={allDay ? 'date' : 'datetime-local'}
                     value={allDay ? end.split('T')[0] : end}
                     onChange={(e) => setEnd(allDay ? `${e.target.value}T23:59` : e.target.value)}
-                    className="flex-1"
+                    className="flex-1 min-w-[140px]"
                   />
                 </div>
                 <div className="flex items-center gap-2">
@@ -224,6 +235,20 @@ const EventModal: React.FC<EventModalProps> = ({
               onChange={(e) => setLocation(e.target.value)}
               className="flex-1"
             />
+          </div>
+
+          {/* Notifications */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <Bell className="w-5 h-5 text-muted-foreground shrink-0" />
+              <Label className="text-sm font-medium">Notificaciones</Label>
+            </div>
+            <div className="pl-8">
+              <NotificationEditor
+                notifications={notifications}
+                onChange={setNotifications}
+              />
+            </div>
           </div>
 
           {/* Calendar */}
