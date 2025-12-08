@@ -64,7 +64,10 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ onCreateEvent, onCloseM
   const handleSaveCalendar = () => {
     if (!newCalendarName.trim()) return;
 
-    if (editingCalendar && editingCalendar.id !== 'new') {
+    const isNewCalendar = editingCalendar?.id === 'new';
+    
+    if (!isNewCalendar && editingCalendar) {
+      // Editing existing calendar
       setCalendars(prev =>
         prev.map(c => c.id === editingCalendar.id
           ? { ...c, name: newCalendarName, color: newCalendarColor }
@@ -72,6 +75,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ onCreateEvent, onCloseM
         )
       );
     } else {
+      // Creating new calendar
       const newCalendar: Calendar = {
         id: crypto.randomUUID(),
         name: newCalendarName,

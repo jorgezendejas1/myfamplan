@@ -9,6 +9,7 @@ import {
   formatDate 
 } from '../utils/dateUtils';
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface MonthViewProps {
   visibleCalendarIds: string[];
@@ -16,7 +17,8 @@ interface MonthViewProps {
   onSelectEvent: (event: CalendarEvent) => void;
 }
 
-const WEEKDAYS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+const WEEKDAYS_FULL = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+const WEEKDAYS_SHORT = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
 
 const MonthView: React.FC<MonthViewProps> = ({
   visibleCalendarIds,
@@ -24,6 +26,7 @@ const MonthView: React.FC<MonthViewProps> = ({
   onSelectEvent,
 }) => {
   const { currentDate, events, calendars, settings } = useApp();
+  const isMobile = useIsMobile();
 
   const monthDays = useMemo(
     () => getMonthDays(currentDate, settings.weekStartsOn),
@@ -42,95 +45,122 @@ const MonthView: React.FC<MonthViewProps> = ({
     return result;
   }, [monthDays]);
 
+  // On mobile, show fewer events
+  const maxEventsToShow = isMobile ? 2 : 3;
+  const weekdays = isMobile ? WEEKDAYS_SHORT : WEEKDAYS_FULL;
+
   return (
-    <div className="h-full flex flex-col bg-background">
+    <div className="h-full flex flex-col bg-background overflow-hidden">
       {/* Weekday headers */}
-      <div className="grid grid-cols-7 border-b border-border">
-        {WEEKDAYS.map((day, i) => (
+      <div className="grid grid-cols-7 border-b border-border shrink-0">
+        {weekdays.map((day, i) => (
           <div
             key={i}
-            className="py-2 text-center text-sm font-medium text-muted-foreground"
+            className={cn(
+              "py-2 text-center font-medium text-muted-foreground",
+              isMobile ? "text-xs" : "text-sm"
+            )}
           >
             {day}
           </div>
         ))}
       </div>
 
-      {/* Calendar grid */}
-      <div className="flex-1 grid grid-rows-[repeat(auto-fill,minmax(0,1fr))]">
-        {weeks.map((week, weekIndex) => (
-          <div key={weekIndex} className="grid grid-cols-7 border-b border-border last:border-b-0">
-            {week.map((day, dayIndex) => {
-              const dayEvents = getEventsForDay(events, day, visibleCalendarIds);
-              const isCurrentMonth = isSameMonth(day, currentDate);
-              const isTodayDate = isToday(day);
-              const displayEvents = dayEvents.slice(0, 3);
-              const moreCount = dayEvents.length - 3;
+      {/* Calendar grid - scrollable on mobile */}
+      <div className={cn(
+        "flex-1 overflow-auto",
+        isMobile && "pb-20" // Space for FAB on mobile
+      )}>
+        <div className="grid" style={{ gridTemplateRows: `repeat(${weeks.length}, minmax(0, 1fr))` }}>
+          {weeks.map((week, weekIndex) => (
+            <div 
+              key={weekIndex} 
+              className={cn(
+                "grid grid-cols-7 border-b border-border last:border-b-0",
+                isMobile ? "min-h-[60px]" : "min-h-[100px]"
+              )}
+            >
+              {week.map((day, dayIndex) => {
+                const dayEvents = getEventsForDay(events, day, visibleCalendarIds);
+                const isCurrentMonth = isSameMonth(day, currentDate);
+                const isTodayDate = isToday(day);
+                const displayEvents = dayEvents.slice(0, maxEventsToShow);
+                const moreCount = dayEvents.length - maxEventsToShow;
 
-              return (
-                <div
-                  key={dayIndex}
-                  className={cn(
-                    'min-h-[100px] p-1 border-r border-border last:border-r-0 day-cell cursor-pointer',
-                    !isCurrentMonth && 'bg-muted/30'
-                  )}
-                  onClick={() => onSelectDate(day)}
-                >
-                  {/* Day number */}
-                  <div className="flex justify-center mb-1">
-                    <span
-                      className={cn(
-                        'w-7 h-7 flex items-center justify-center text-sm rounded-full',
-                        isTodayDate && 'bg-primary text-primary-foreground font-medium',
-                        !isCurrentMonth && 'text-muted-foreground'
-                      )}
-                    >
-                      {formatDate(day, 'd')}
-                    </span>
-                  </div>
-
-                  {/* Events */}
-                  <div className="space-y-0.5">
-                    {displayEvents.map((event) => (
-                      <button
-                        key={event.id}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onSelectEvent(event);
-                        }}
-                        className="event-chip w-full text-left text-white"
-                        style={{ backgroundColor: getCalendarColor(event.calendarId) }}
-                      >
-                        {event.allDay ? (
-                          event.title
-                        ) : (
-                          <>
-                            <span className="font-medium">
-                              {formatDate(event.start, settings.timeFormat === '24h' ? 'HH:mm' : 'h:mm a')}
-                            </span>
-                            {' '}
-                            {event.title}
-                          </>
-                        )}
-                      </button>
-                    ))}
-                    {moreCount > 0 && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          // Could expand to show all events
-                        }}
-                        className="text-xs text-primary hover:underline px-2"
-                      >
-                        +{moreCount} más
-                      </button>
+                return (
+                  <div
+                    key={dayIndex}
+                    className={cn(
+                      'p-0.5 sm:p-1 border-r border-border last:border-r-0 day-cell cursor-pointer overflow-hidden',
+                      !isCurrentMonth && 'bg-muted/30'
                     )}
+                    onClick={() => onSelectDate(day)}
+                  >
+                    {/* Day number */}
+                    <div className="flex justify-center mb-0.5 sm:mb-1">
+                      <span
+                        className={cn(
+                          'flex items-center justify-center rounded-full',
+                          isMobile ? 'w-6 h-6 text-xs' : 'w-7 h-7 text-sm',
+                          isTodayDate && 'bg-primary text-primary-foreground font-medium',
+                          !isCurrentMonth && 'text-muted-foreground'
+                        )}
+                      >
+                        {formatDate(day, 'd')}
+                      </span>
+                    </div>
+
+                    {/* Events */}
+                    <div className="space-y-0.5 overflow-hidden">
+                      {displayEvents.map((event) => (
+                        <button
+                          key={event.id}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onSelectEvent(event);
+                          }}
+                          className={cn(
+                            "event-chip w-full text-left text-white",
+                            isMobile && "text-[10px] py-0 px-1"
+                          )}
+                          style={{ backgroundColor: getCalendarColor(event.calendarId) }}
+                        >
+                          {isMobile ? (
+                            <span className="truncate block">{event.title}</span>
+                          ) : event.allDay ? (
+                            event.title
+                          ) : (
+                            <>
+                              <span className="font-medium">
+                                {formatDate(event.start, settings.timeFormat === '24h' ? 'HH:mm' : 'h:mm a')}
+                              </span>
+                              {' '}
+                              {event.title}
+                            </>
+                          )}
+                        </button>
+                      ))}
+                      {moreCount > 0 && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onSelectDate(day);
+                          }}
+                          className={cn(
+                            "text-primary hover:underline",
+                            isMobile ? "text-[10px] px-1" : "text-xs px-2"
+                          )}
+                        >
+                          +{moreCount} más
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        ))}
+                );
+              })}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
