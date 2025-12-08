@@ -44,6 +44,8 @@ export function useChatHistory() {
       await addMessageToCloud(message);
     } catch (err) {
       console.error('Error adding message to cloud:', err);
+      // Revert on error
+      setChatMessages(prev => prev.filter(m => m.id !== message.id));
     }
   }, []);
 

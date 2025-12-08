@@ -26,10 +26,12 @@ const SyncIndicator: React.FC<SyncIndicatorProps> = ({ onSync, className }) => {
       await onSync();
       setStatus('success');
       setLastSync(new Date());
-      setTimeout(() => setStatus('idle'), 2000);
+      const successTimeout = setTimeout(() => setStatus('idle'), 2000);
+      return () => clearTimeout(successTimeout);
     } catch {
       setStatus('error');
-      setTimeout(() => setStatus('idle'), 3000);
+      const errorTimeout = setTimeout(() => setStatus('idle'), 3000);
+      return () => clearTimeout(errorTimeout);
     }
   }, [onSync]);
 

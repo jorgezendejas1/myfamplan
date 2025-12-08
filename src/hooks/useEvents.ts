@@ -53,6 +53,9 @@ export function useEvents() {
   }, []);
 
   const updateEvent = useCallback(async (event: CalendarEvent) => {
+    // Store previous state for rollback
+    const previousEvent = events.find(e => e.id === event.id);
+    
     // Optimistic update
     setEvents(prev => prev.map(e => e.id === event.id ? event : e));
     
@@ -60,8 +63,12 @@ export function useEvents() {
       await updateEventInCloud(event);
     } catch (err) {
       console.error('Error updating event in cloud:', err);
+      // Revert on error
+      if (previousEvent) {
+        setEvents(prev => prev.map(e => e.id === event.id ? previousEvent : e));
+      }
     }
-  }, []);
+  }, [events]);
 
   const deleteEvent = useCallback(async (id: string, permanent = false) => {
     if (permanent) {

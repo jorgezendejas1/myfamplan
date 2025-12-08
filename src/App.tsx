@@ -85,22 +85,30 @@ function App() {
     enabled: true,
   });
 
-  // Start notification service
+  // Refs for notification service to avoid stale closures
+  const eventsRef = React.useRef(events);
+  const emailRef = React.useRef(settings.notificationEmail);
+  
+  // Keep refs updated
+  React.useEffect(() => {
+    eventsRef.current = events;
+  }, [events]);
+  
+  React.useEffect(() => {
+    emailRef.current = settings.notificationEmail;
+  }, [settings.notificationEmail]);
+
+  // Start notification service once
   useEffect(() => {
     startNotificationService(
-      () => events,
-      () => settings.notificationEmail
+      () => eventsRef.current,
+      () => emailRef.current
     );
 
     return () => {
       stopNotificationService();
     };
   }, []);
-
-  // Update notification service when events or email change
-  useEffect(() => {
-    // The service will pick up changes on next interval
-  }, [events, settings.notificationEmail]);
 
   // Theme handling
   useEffect(() => {

@@ -9,7 +9,6 @@ import {
 } from '../utils/dateUtils';
 import { cn } from '@/lib/utils';
 import { Calendar, MapPin, Clock, CalendarOff } from 'lucide-react';
-import { EVENT_TYPE_ICONS } from '../constants';
 
 interface AgendaViewProps {
   visibleCalendarIds: string[];
