@@ -14,7 +14,130 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      event_sync_mapping: {
+        Row: {
+          created_at: string | null
+          google_account_id: string | null
+          google_event_id: string
+          id: string
+          last_synced_at: string | null
+          local_event_id: string
+          sync_status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          google_account_id?: string | null
+          google_event_id: string
+          id?: string
+          last_synced_at?: string | null
+          local_event_id: string
+          sync_status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          google_account_id?: string | null
+          google_event_id?: string
+          id?: string
+          last_synced_at?: string | null
+          local_event_id?: string
+          sync_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_sync_mapping_google_account_id_fkey"
+            columns: ["google_account_id"]
+            isOneToOne: false
+            referencedRelation: "google_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      google_accounts: {
+        Row: {
+          access_token: string
+          calendar_id: string | null
+          created_at: string | null
+          email: string
+          id: string
+          last_sync_at: string | null
+          refresh_token: string
+          sync_enabled: boolean | null
+          sync_token: string | null
+          token_expires_at: string
+          updated_at: string | null
+        }
+        Insert: {
+          access_token: string
+          calendar_id?: string | null
+          created_at?: string | null
+          email: string
+          id?: string
+          last_sync_at?: string | null
+          refresh_token: string
+          sync_enabled?: boolean | null
+          sync_token?: string | null
+          token_expires_at: string
+          updated_at?: string | null
+        }
+        Update: {
+          access_token?: string
+          calendar_id?: string | null
+          created_at?: string | null
+          email?: string
+          id?: string
+          last_sync_at?: string | null
+          refresh_token?: string
+          sync_enabled?: boolean | null
+          sync_token?: string | null
+          token_expires_at?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      sync_queue: {
+        Row: {
+          action: string
+          attempts: number | null
+          created_at: string | null
+          error_message: string | null
+          event_data: Json | null
+          google_account_id: string | null
+          id: string
+          last_attempt_at: string | null
+          local_event_id: string
+        }
+        Insert: {
+          action: string
+          attempts?: number | null
+          created_at?: string | null
+          error_message?: string | null
+          event_data?: Json | null
+          google_account_id?: string | null
+          id?: string
+          last_attempt_at?: string | null
+          local_event_id: string
+        }
+        Update: {
+          action?: string
+          attempts?: number | null
+          created_at?: string | null
+          error_message?: string | null
+          event_data?: Json | null
+          google_account_id?: string | null
+          id?: string
+          last_attempt_at?: string | null
+          local_event_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sync_queue_google_account_id_fkey"
+            columns: ["google_account_id"]
+            isOneToOne: false
+            referencedRelation: "google_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
